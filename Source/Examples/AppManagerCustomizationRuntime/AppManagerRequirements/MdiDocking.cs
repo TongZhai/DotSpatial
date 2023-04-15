@@ -1,5 +1,7 @@
-﻿// Copyright (c) DotSpatial Team. All rights reserved.
-// Licensed under the MIT, license. See License.txt file in the project root for full license information.
+﻿// -----------------------------------------------------------------------
+// <copyright file="SimpleMdiDocking.cs" company="DotSpatial Team">
+// </copyright>
+// -----------------------------------------------------------------------
 
 using System;
 using System.Collections.Generic;
@@ -12,8 +14,8 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
 {
     /// <summary>
     /// Simple implmenentation of IDockManager.
-    /// It shows how to create your own dock manager as extension.
-    /// You may delete this class in your application. In this case the default dock manager control will be used.
+    /// It shows a technique how to create own dock manager as extension.
+    /// You may delete this class in your application. In this case default dock manager control will be used.
     /// </summary>
     internal class MdiDocking : IDockManager, IPartImportsSatisfiedNotification
     {
@@ -22,7 +24,7 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
         [Import("Shell")]
         private ContainerControl Shell { get; set; }
 
-        private readonly List<Form> _forms = new();
+        private readonly List<Form> _forms = new List<Form>();
 
         #endregion
 
@@ -53,19 +55,20 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
         /// </summary>
         public event EventHandler<DockablePanelEventArgs> PanelHidden;
 
+
         /// <summary>
         /// Removes the specified panel.
         /// </summary>
         /// <param name="key">The key.</param>
         public void Remove(string key)
         {
-            Form form = GetFormByKey(key);
+            var form = GetFormByKey(key);
             if (form != null)
             {
                 form.Close();
                 _forms.Remove(form);
 
-                form.Activated -= Form_Activated;
+                form.Activated -= form_Activated;
                 form.VisibleChanged -= FormOnVisibleChanged;
                 form.Closed -= FormOnClosed;
                 OnPanelRemoved(new DockablePanelEventArgs(key));
@@ -78,8 +81,8 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
         /// <param name="key">The key.</param>
         public void SelectPanel(string key)
         {
-            Form form = GetFormByKey(key);
-            form?.Focus();
+            var form = GetFormByKey(key);
+            if (form != null) form.Focus();
         }
 
         /// <summary>
@@ -88,61 +91,63 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
         /// <param name="panel"></param>
         public void Add(DockablePanel panel)
         {
-            Add(panel.Key, panel.InnerControl);
+            Add(panel.Key, panel.Caption, panel.InnerControl, panel.Dock);
             OnPanelAdded(new DockablePanelEventArgs(panel.Key));
         }
-
+       
         public void ResetLayout()
         {
             _forms.ForEach(_ => _.Show(Shell));
         }
 
         #endregion
-
+       
         protected virtual void OnPanelRemoved(DockablePanelEventArgs ea)
         {
-            PanelRemoved?.Invoke(this, ea);
+            if (PanelRemoved != null)
+                PanelRemoved(this, ea);
         }
 
         protected virtual void OnPanelAdded(DockablePanelEventArgs ea)
         {
-            PanelAdded?.Invoke(this, ea);
+            if (PanelAdded != null)
+                PanelAdded(this, ea);
         }
-
+        
         protected virtual void OnPanelClosed(DockablePanelEventArgs ea)
         {
-            PanelClosed?.Invoke(this, ea);
+            if (PanelClosed != null)
+                PanelClosed(this, ea);
         }
-
+       
         protected virtual void OnActivePanelChanged(DockablePanelEventArgs ea)
         {
-            ActivePanelChanged?.Invoke(this, ea);
+            if (ActivePanelChanged != null)
+                ActivePanelChanged(this, ea);
         }
 
         protected virtual void OnPanelHidden(DockablePanelEventArgs ea)
         {
-            PanelHidden?.Invoke(this, ea);
+            if (PanelHidden != null)
+                PanelHidden(this, ea);
         }
-
-        public void Add(string key, Control panel)
+      
+        public void Add(string key, string caption, Control panel, DockStyle dockStyle)
         {
-            if (panel == null)
-            {
-                throw new ArgumentNullException(nameof(panel));
-            }
-
+            if (panel == null) throw new ArgumentNullException("panel");
+            
             panel.Dock = DockStyle.Fill;
-            Form form = new()
-            {
-                Name = key,
-                Text = panel.Text,
-                Width = panel.Width,
-                Height = panel.Height,
-                MdiParent = Shell as Form,
-            };
+            var form = new Form
+                       {
+                           Name = key,
+                           Text = panel.Text,
+                           Width = panel.Width,
+                           Height = panel.Height,
+                           MdiParent = Shell as Form,
+                       };
             form.Controls.Add(panel);
-
-            form.Activated += Form_Activated;
+            
+            form.Activated += form_Activated;
             form.VisibleChanged += FormOnVisibleChanged;
             form.Closed += FormOnClosed;
 
@@ -157,28 +162,34 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
 
         private void FormOnVisibleChanged(object sender, EventArgs eventArgs)
         {
-            Form form = (Form)sender;
+            var form = (Form) sender;
             if (!form.Visible)
             {
                 OnPanelHidden(new DockablePanelEventArgs(form.Name));
             }
         }
 
-        private void Form_Activated(object sender, EventArgs e)
+        private void form_Activated(object sender, EventArgs e)
         {
             OnActivePanelChanged(new DockablePanelEventArgs(((Form)sender).Name));
         }
 
         public void HidePanel(string key)
         {
-            Form form = GetFormByKey(key);
-            form?.Hide();
+            var form = GetFormByKey(key);
+            if (form != null)
+            {
+                form.Hide();
+            }
         }
 
         public void ShowPanel(string key)
         {
-            Form form = GetFormByKey(key);
-            form?.Show();
+            var form = GetFormByKey(key);
+            if (form != null)
+            {
+                form.Show();
+            }
         }
 
         private Form GetFormByKey(string key)
@@ -188,10 +199,8 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
 
         public void OnImportsSatisfied()
         {
-            if (Shell is Form form)
-            {
-                form.IsMdiContainer = true;
-            }
+            var form = Shell as Form;
+            if (form != null) form.IsMdiContainer = true;
         }
     }
 }

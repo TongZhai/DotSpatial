@@ -1,28 +1,26 @@
-﻿// Copyright (c) DotSpatial Team. All rights reserved.
-// Licensed under the MIT, license. See License.txt file in the project root for full license information.
-
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 
 namespace DemoPlugin.DemoPluginExtension
 {
-    internal partial class AboutBox : Form
+    partial class AboutBox : Form
     {
         public AboutBox()
         {
             InitializeComponent();
-            Text = string.Format("About {0}", AssemblyTitle);
-            labelProductName.Text = AssemblyProduct;
-            labelVersion.Text = string.Format("Version {0}", AssemblyVersion);
-            labelCopyright.Text = AssemblyCopyright;
-            labelCompanyName.Text = AssemblyCompany;
-            textBoxDescription.Text = AssemblyDescription;
+            this.Text = String.Format("About {0}", AssemblyTitle);
+            this.labelProductName.Text = AssemblyProduct;
+            this.labelVersion.Text = String.Format("Version {0}", AssemblyVersion);
+            this.labelCopyright.Text = AssemblyCopyright;
+            this.labelCompanyName.Text = AssemblyCompany;
+            this.textBoxDescription.Text = AssemblyDescription;
         }
 
         #region Assembly Attribute Accessors
 
-        public static string AssemblyTitle
+        public string AssemblyTitle
         {
             get
             {
@@ -35,14 +33,19 @@ namespace DemoPlugin.DemoPluginExtension
                         return titleAttribute.Title;
                     }
                 }
-
-                return Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().Location);
+                return Path.GetFileNameWithoutExtension(Assembly.GetExecutingAssembly().CodeBase);
             }
         }
 
-        public static string AssemblyVersion => Assembly.GetExecutingAssembly().GetName().Version.ToString();
+        public string AssemblyVersion
+        {
+            get
+            {
+                return Assembly.GetExecutingAssembly().GetName().Version.ToString();
+            }
+        }
 
-        public static string AssemblyDescription
+        public string AssemblyDescription
         {
             get
             {
@@ -51,12 +54,11 @@ namespace DemoPlugin.DemoPluginExtension
                 {
                     return "";
                 }
-
                 return ((AssemblyDescriptionAttribute)attributes[0]).Description;
             }
         }
 
-        public static string AssemblyProduct
+        public string AssemblyProduct
         {
             get
             {
@@ -65,12 +67,11 @@ namespace DemoPlugin.DemoPluginExtension
                 {
                     return "";
                 }
-
                 return ((AssemblyProductAttribute)attributes[0]).Product;
             }
         }
 
-        public static string AssemblyCopyright
+        public string AssemblyCopyright
         {
             get
             {
@@ -79,12 +80,11 @@ namespace DemoPlugin.DemoPluginExtension
                 {
                     return "";
                 }
-
                 return ((AssemblyCopyrightAttribute)attributes[0]).Copyright;
             }
         }
 
-        public static string AssemblyCompany
+        public string AssemblyCompany
         {
             get
             {
@@ -93,7 +93,6 @@ namespace DemoPlugin.DemoPluginExtension
                 {
                     return "";
                 }
-
                 return ((AssemblyCompanyAttribute)attributes[0]).Company;
             }
         }

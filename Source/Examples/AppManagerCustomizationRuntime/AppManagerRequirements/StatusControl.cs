@@ -1,6 +1,4 @@
-﻿// Copyright (c) DotSpatial Team. All rights reserved.
-// Licensed under the MIT, license. See License.txt file in the project root for full license information.
-
+﻿using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Drawing;
@@ -14,7 +12,7 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
     /// It shows a technique how to create own status control as extension.
     /// You may delete this class in your application. In this case default status control will be used.
     /// </summary>
-    internal class StatusControl : IStatusControl, IPartImportsSatisfiedNotification
+    internal class StatusControl: IStatusControl, IPartImportsSatisfiedNotification
     {
         private StatusPanel defaultStatusPanel;
         private StatusStrip statusStrip;
@@ -27,9 +25,9 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
         public void OnImportsSatisfied()
         {
             statusStrip = new StatusStrip
-            {
-                ForeColor = Color.Blue
-            };
+                          {
+                              ForeColor = Color.Blue
+                          };
 
             // adding the status strip control
             Shell.Controls.Add(statusStrip);
@@ -49,18 +47,18 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
         /// <param name="panel">the user-specified status panel</param>
         public void Add(StatusPanel panel)
         {
-            ToolStripStatusLabel myLabel = new()
-            {
-                Name = panel.Key,
-                Text = panel.Caption,
-                Width = panel.Width,
-                Spring = panel.Width == 0,
-                TextAlign = ContentAlignment.MiddleLeft
-            };
+            var myLabel = new ToolStripStatusLabel
+                          {
+                              Name = panel.Key,
+                              Text = panel.Caption,
+                              Width = panel.Width,
+                              Spring = (panel.Width == 0),
+                              TextAlign = ContentAlignment.MiddleLeft
+                          };
 
-            panel.PropertyChanged += delegate (object sender, PropertyChangedEventArgs e)
+            panel.PropertyChanged += delegate(object sender, PropertyChangedEventArgs e)
                 {
-                    StatusPanel item = (StatusPanel)sender;
+                    var item = (StatusPanel)sender;
 
                     myLabel.Text = item.Caption;
                     myLabel.Width = item.Width;
@@ -69,9 +67,9 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
             statusStrip.Items.Add(myLabel);
         }
 
-        public void Progress(int percent, string message)
+        public void Progress(string key, int percent, string message)
         {
-            defaultStatusPanel.Caption = percent == 0 ? message : string.Format("{0}... {1}%", message, percent);
+            defaultStatusPanel.Caption = percent == 0 ? message : String.Format("{0}... {1}%", message, percent);
 
             if (!statusStrip.InvokeRequired)
             {
@@ -84,11 +82,6 @@ namespace DotSpatial.Examples.AppManagerCustomizationRuntime.AppManagerRequireme
         public void Remove(StatusPanel panel)
         {
             statusStrip.Items.RemoveByKey(panel.Key);
-        }
-
-        public void Reset()
-        {
-            defaultStatusPanel.Caption = "";
         }
 
         #endregion
